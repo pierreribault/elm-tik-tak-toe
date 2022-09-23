@@ -5672,7 +5672,8 @@ var $elm$core$Array$repeat = F2(
 	});
 var $author$project$Main$initBoardgame = {
 	cells: A2($elm$core$Array$repeat, 9, $author$project$Main$initCell),
-	currentPlayer: $author$project$Main$Player1
+	currentPlayer: $author$project$Main$Player1,
+	winner: $elm$core$Maybe$Nothing
 };
 var $elm$browser$Debugger$Expando$ArraySeq = {$: 'ArraySeq'};
 var $elm$browser$Debugger$Overlay$BlockMost = {$: 'BlockMost'};
@@ -10708,6 +10709,130 @@ var $author$project$Main$cellIsOwnable = F2(
 			return false;
 		}
 	});
+var $author$project$Main$cellIsOwnedBy = F2(
+	function (cell, currentPlayer) {
+		var _v0 = cell.player;
+		if (_v0.$ === 'Nothing') {
+			return false;
+		} else {
+			var player = _v0.a;
+			return _Utils_eq(player, currentPlayer);
+		}
+	});
+var $elm$core$Array$filter = F2(
+	function (isGood, array) {
+		return $elm$core$Array$fromList(
+			A3(
+				$elm$core$Array$foldr,
+				F2(
+					function (x, xs) {
+						return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+					}),
+				_List_Nil,
+				array));
+	});
+var $elm$core$Elm$JsArray$map = _JsArray_map;
+var $elm$core$Array$map = F2(
+	function (func, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		var helper = function (node) {
+			if (node.$ === 'SubTree') {
+				var subTree = node.a;
+				return $elm$core$Array$SubTree(
+					A2($elm$core$Elm$JsArray$map, helper, subTree));
+			} else {
+				var values = node.a;
+				return $elm$core$Array$Leaf(
+					A2($elm$core$Elm$JsArray$map, func, values));
+			}
+		};
+		return A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			A2($elm$core$Elm$JsArray$map, helper, tree),
+			A2($elm$core$Elm$JsArray$map, func, tail));
+	});
+var $author$project$Main$doesPlayerGetVictoryCombinaison = F3(
+	function (combinaison, player, cells) {
+		var howManyPlayerGetCombinaisonCells = $elm$core$Array$length(
+			A2(
+				$elm$core$Array$filter,
+				function (cell) {
+					return A2($author$project$Main$cellIsOwnedBy, cell, player);
+				},
+				A2(
+					$elm$core$Array$map,
+					function (id) {
+						return A2(
+							$elm$core$Maybe$withDefault,
+							$author$project$Main$initCell,
+							A2($elm$core$Array$get, id, cells));
+					},
+					$elm$core$Array$fromList(combinaison))));
+		return howManyPlayerGetCombinaisonCells === 3;
+	});
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Main$victoryPossibilities = _List_fromArray(
+	[
+		_List_fromArray(
+		[0, 1, 2]),
+		_List_fromArray(
+		[0, 3, 6]),
+		_List_fromArray(
+		[0, 4, 8]),
+		_List_fromArray(
+		[3, 4, 5]),
+		_List_fromArray(
+		[1, 4, 7]),
+		_List_fromArray(
+		[6, 4, 2]),
+		_List_fromArray(
+		[6, 7, 8]),
+		_List_fromArray(
+		[2, 5, 8])
+	]);
+var $author$project$Main$doesPlayerWin = F2(
+	function (player, cells) {
+		return !$elm$core$List$isEmpty(
+			A2(
+				$elm$core$List$filter,
+				$elm$core$Basics$eq(true),
+				A2(
+					$elm$core$List$map,
+					function (combinaison) {
+						return A3($author$project$Main$doesPlayerGetVictoryCombinaison, combinaison, player, cells);
+					},
+					$author$project$Main$victoryPossibilities)));
+	});
+var $author$project$Main$Player2 = {$: 'Player2'};
+var $author$project$Main$switchPlayer = function (player) {
+	return _Utils_eq(player, $author$project$Main$Player1) ? $author$project$Main$Player2 : $author$project$Main$Player1;
+};
+var $author$project$Main$isThereWinner = function (boardgame) {
+	return A2($author$project$Main$doesPlayerWin, boardgame.currentPlayer, boardgame.cells) ? _Utils_update(
+		boardgame,
+		{
+			winner: $elm$core$Maybe$Just(boardgame.currentPlayer)
+		}) : _Utils_update(
+		boardgame,
+		{
+			currentPlayer: $author$project$Main$switchPlayer(boardgame.currentPlayer)
+		});
+};
 var $elm$core$Array$setHelp = F4(
 	function (shift, index, value, tree) {
 		var pos = $elm$core$Array$bitMask & (index >>> shift);
@@ -10760,20 +10885,16 @@ var $author$project$Main$modifyCellOwner = F3(
 			},
 			boardgame.cells);
 	});
-var $author$project$Main$Player2 = {$: 'Player2'};
-var $author$project$Main$switchPlayer = function (player) {
-	return _Utils_eq(player, $author$project$Main$Player1) ? $author$project$Main$Player2 : $author$project$Main$Player1;
-};
 var $author$project$Main$update = F2(
 	function (msg, boardgame) {
 		var id = msg.a;
 		var player = msg.b;
-		return A2($author$project$Main$cellIsOwnable, id, boardgame) ? _Utils_update(
-			boardgame,
-			{
-				cells: A3($author$project$Main$modifyCellOwner, id, player, boardgame),
-				currentPlayer: $author$project$Main$switchPlayer(boardgame.currentPlayer)
-			}) : boardgame;
+		return A2($author$project$Main$cellIsOwnable, id, boardgame) ? $author$project$Main$isThereWinner(
+			_Utils_update(
+				boardgame,
+				{
+					cells: A3($author$project$Main$modifyCellOwner, id, player, boardgame)
+				})) : boardgame;
 	});
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$initBoardgame, update: $author$project$Main$update, view: $author$project$Main$displayHtmlBoardgame});

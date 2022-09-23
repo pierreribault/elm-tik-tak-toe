@@ -48,6 +48,27 @@ switchPlayer player =
         Player1
 
 
+doesPlayerGetVictoryCombinaison : List Int -> Player -> Array Cell -> Bool
+doesPlayerGetVictoryCombinaison combinaison player cells =
+    let
+        howManyPlayerGetCombinaisonCells =
+            Array.fromList combinaison
+                |> Array.map (\id -> Maybe.withDefault initCell (Array.get id cells))
+                |> Array.filter (\cell -> cellIsOwnedBy cell player)
+                |> Array.length
+    in
+    howManyPlayerGetCombinaisonCells == 3
+
+
+doesPlayerWin : Player -> Array Cell -> Bool
+doesPlayerWin player cells =
+    victoryPossibilities
+        |> List.map (\combinaison -> doesPlayerGetVictoryCombinaison combinaison player cells)
+        |> List.filter ((==) True)
+        |> List.isEmpty
+        |> not
+
+
 
 -- CELL --
 
@@ -107,6 +128,16 @@ cellIsOwnable id boardgame =
             False
 
 
+cellIsOwnedBy : Cell -> Player -> Bool
+cellIsOwnedBy cell currentPlayer =
+    case cell.player of
+        Nothing ->
+            False
+
+        Just player ->
+            player == currentPlayer
+
+
 
 -- Boardgame --
 
@@ -114,6 +145,7 @@ cellIsOwnable id boardgame =
 type alias Boardgame =
     { cells : Array Cell
     , currentPlayer : Player
+    , winner : Maybe Player
     }
 
 
@@ -121,6 +153,7 @@ initBoardgame : Boardgame
 initBoardgame =
     { cells = repeat 9 initCell
     , currentPlayer = Player1
+    , winner = Nothing
     }
 
 
@@ -156,6 +189,28 @@ displayHtmlBoardgame boardgame =
         ]
 
 
+victoryPossibilities : List (List Int)
+victoryPossibilities =
+    [ [ 0, 1, 2 ]
+    , [ 0, 3, 6 ]
+    , [ 0, 4, 8 ]
+    , [ 3, 4, 5 ]
+    , [ 1, 4, 7 ]
+    , [ 6, 4, 2 ]
+    , [ 6, 7, 8 ]
+    , [ 2, 5, 8 ]
+    ]
+
+
+isThereWinner : Boardgame -> Boardgame
+isThereWinner boardgame =
+    if doesPlayerWin boardgame.currentPlayer boardgame.cells then
+        { boardgame | winner = Just boardgame.currentPlayer }
+
+    else
+        { boardgame | currentPlayer = switchPlayer boardgame.currentPlayer }
+
+
 
 -- Event --
 
@@ -169,10 +224,7 @@ update msg boardgame =
     case msg of
         CellSelectedBy id player ->
             if cellIsOwnable id boardgame then
-                { boardgame
-                    | cells = modifyCellOwner id player boardgame
-                    , currentPlayer = switchPlayer boardgame.currentPlayer
-                }
+                isThereWinner { boardgame | cells = modifyCellOwner id player boardgame }
 
             else
                 boardgame
