@@ -1,14 +1,18 @@
 module Main exposing (..)
 
 import Array exposing (Array, repeat)
+import Browser
 import Html exposing (..)
 import Html.Attributes exposing (id, style)
+import Html.Events exposing (onClick)
 
 
 main =
-    div []
-        [ displayHtmlBoardgame initBoardgame
-        ]
+    Browser.sandbox
+        { init = initBoardgame
+        , view = displayHtmlBoardgame
+        , update = update
+        }
 
 
 
@@ -64,12 +68,18 @@ displayCell cell =
     displayPlayer cell.player
 
 
-displayHtmlCell : Int -> Cell -> Html ()
-displayHtmlCell index cell =
+displayHtmlCell : Int -> Cell -> Player -> Html Msg
+displayHtmlCell index cell player =
     button
         [ id <| "text" ++ String.fromInt index
+        , onClick <| CellSelectedBy index player
         ]
         [ text <| displayCell cell ]
+
+
+modifyCellOwner : Int -> Player -> Boardgame -> Array Cell
+modifyCellOwner id player boardgame =
+    Array.set id { player = Just player } boardgame.cells
 
 
 
@@ -78,21 +88,23 @@ displayHtmlCell index cell =
 
 type alias Boardgame =
     { cells : Array Cell
+    , currentPlayer : Player
     }
 
 
 initBoardgame : Boardgame
 initBoardgame =
     { cells = repeat 9 initCell
+    , currentPlayer = Player1
     }
 
 
-displayBoardgame : Boardgame -> List (Html ())
+displayBoardgame : Boardgame -> List (Html Msg)
 displayBoardgame boardgame =
-    List.map (\( index, cell ) -> displayHtmlCell index cell) <| Array.toIndexedList boardgame.cells
+    List.map (\( index, cell ) -> displayHtmlCell index cell boardgame.currentPlayer) <| Array.toIndexedList boardgame.cells
 
 
-displayHtmlBoardgame : Boardgame -> Html ()
+displayHtmlBoardgame : Boardgame -> Html Msg
 displayHtmlBoardgame boardgame =
     div
         [ style "display" "grid"
@@ -101,3 +113,21 @@ displayHtmlBoardgame boardgame =
         , style "grid-auto-rows" "minmax(100px, auto)"
         ]
         (displayBoardgame boardgame)
+
+
+
+-- Event --
+
+
+type Msg
+    = CellSelectedBy Int Player
+
+
+update : Msg -> Boardgame -> Boardgame
+update msg boardgame =
+    case msg of
+        CellSelectedBy id player ->
+            { boardgame
+                | cells = modifyCellOwner id player boardgame
+                , currentPlayer = switchPlayer boardgame.currentPlayer
+            }
