@@ -1,14 +1,18 @@
 module Main exposing (..)
 
-import Html exposing (div, text)
+import Html exposing (..)
 
 
 main =
     div []
-        [ text (displayPlayer Nothing)
-        , text (displayPlayer (Just Player1))
-        , text (displayPlayer (Just (switchPlayer Player1)))
+        [ displayHtmlCell initCell
+        , displayHtmlCell { player = Just Player1 }
+        , displayHtmlCell { player = Just Player2 }
         ]
+
+
+
+-- PLAYER --
 
 
 type Player
@@ -38,3 +42,28 @@ switchPlayer player =
 
     else
         Player1
+
+
+
+-- CELL --
+
+
+type alias Cell =
+    { player : Maybe Player
+    }
+
+
+initCell : Cell
+initCell =
+    { player = Nothing
+    }
+
+
+displayCell : Cell -> String
+displayCell cell =
+    displayPlayer cell.player
+
+
+displayHtmlCell : Cell -> Html ()
+displayHtmlCell cell =
+    button [] [ text <| displayCell cell ]

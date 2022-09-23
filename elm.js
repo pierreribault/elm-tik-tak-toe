@@ -4420,6 +4420,8 @@ var $elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	}
 };
 var $author$project$Main$Player1 = {$: 'Player1'};
+var $author$project$Main$Player2 = {$: 'Player2'};
+var $elm$html$Html$button = _VirtualDom_node('button');
 var $author$project$Main$displayPlayer = function (player) {
 	if (player.$ === 'Nothing') {
 		return '?';
@@ -4432,26 +4434,36 @@ var $author$project$Main$displayPlayer = function (player) {
 		}
 	}
 };
-var $elm$html$Html$div = _VirtualDom_node('div');
-var $author$project$Main$Player2 = {$: 'Player2'};
-var $author$project$Main$switchPlayer = function (player) {
-	return _Utils_eq(player, $author$project$Main$Player1) ? $author$project$Main$Player2 : $author$project$Main$Player1;
+var $author$project$Main$displayCell = function (cell) {
+	return $author$project$Main$displayPlayer(cell.player);
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$displayHtmlCell = function (cell) {
+	return A2(
+		$elm$html$Html$button,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text(
+				$author$project$Main$displayCell(cell))
+			]));
+};
+var $elm$html$Html$div = _VirtualDom_node('div');
+var $author$project$Main$initCell = {player: $elm$core$Maybe$Nothing};
 var $author$project$Main$main = A2(
 	$elm$html$Html$div,
 	_List_Nil,
 	_List_fromArray(
 		[
-			$elm$html$Html$text(
-			$author$project$Main$displayPlayer($elm$core$Maybe$Nothing)),
-			$elm$html$Html$text(
-			$author$project$Main$displayPlayer(
-				$elm$core$Maybe$Just($author$project$Main$Player1))),
-			$elm$html$Html$text(
-			$author$project$Main$displayPlayer(
-				$elm$core$Maybe$Just(
-					$author$project$Main$switchPlayer($author$project$Main$Player1))))
+			$author$project$Main$displayHtmlCell($author$project$Main$initCell),
+			$author$project$Main$displayHtmlCell(
+			{
+				player: $elm$core$Maybe$Just($author$project$Main$Player1)
+			}),
+			$author$project$Main$displayHtmlCell(
+			{
+				player: $elm$core$Maybe$Just($author$project$Main$Player2)
+			})
 		]));
 _Platform_export({'Main':{'init':_VirtualDom_init($author$project$Main$main)(0)(0)}});}(this));
