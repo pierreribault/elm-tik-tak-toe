@@ -70,6 +70,13 @@ doesPlayerWin player cells =
         |> not
 
 
+doesNoWinner : Array Cell -> Bool
+doesNoWinner cells =
+    cells
+        |> Array.filter (\cell -> cell.player == Nothing)
+        |> Array.isEmpty
+
+
 
 -- CELL --
 
@@ -176,21 +183,35 @@ displayHtmlBoardgame boardgame =
     in
     case boardgame.winner of
         Nothing ->
-            div []
-                [ div
-                    [ style "display" "grid"
-                    , style "grid-template-columns" "repeat(3, 1fr)"
-                    , style "grid-gap" "10px"
-                    , style "grid-auto-rows" "minmax(100px, auto)"
+            if doesNoWinner boardgame.cells then
+                div [ style "text-align" "center" ]
+                    [ p
+                        [ style "margin-top" "2em"
+                        , style "text-align" "center"
+                        , style "font-size" "30px"
+                        ]
+                        [ text <| "Oh, there's no winner this time !" ]
+                    , button
+                        [ onClick Reset ]
+                        [ text "Restart the game" ]
                     ]
-                    (displayBoardgame boardgame)
-                , p
-                    [ style "margin-top" "2em"
-                    , style "text-align" "center"
-                    , style "font-size" "30px"
+
+            else
+                div []
+                    [ div
+                        [ style "display" "grid"
+                        , style "grid-template-columns" "repeat(3, 1fr)"
+                        , style "grid-gap" "10px"
+                        , style "grid-auto-rows" "minmax(100px, auto)"
+                        ]
+                        (displayBoardgame boardgame)
+                    , p
+                        [ style "margin-top" "2em"
+                        , style "text-align" "center"
+                        , style "font-size" "30px"
+                        ]
+                        [ text <| "It's turn of " ++ playerName boardgame.currentPlayer ]
                     ]
-                    [ text <| "It's turn of " ++ playerName boardgame.currentPlayer ]
-                ]
 
         Just winner ->
             div [ style "text-align" "center" ]
