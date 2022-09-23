@@ -1,13 +1,13 @@
 module Main exposing (..)
 
+import Array exposing (Array, repeat)
 import Html exposing (..)
+import Html.Attributes exposing (id, style)
 
 
 main =
     div []
-        [ displayHtmlCell initCell
-        , displayHtmlCell { player = Just Player1 }
-        , displayHtmlCell { player = Just Player2 }
+        [ displayHtmlBoardgame initBoardgame
         ]
 
 
@@ -64,6 +64,40 @@ displayCell cell =
     displayPlayer cell.player
 
 
-displayHtmlCell : Cell -> Html ()
-displayHtmlCell cell =
-    button [] [ text <| displayCell cell ]
+displayHtmlCell : Int -> Cell -> Html ()
+displayHtmlCell index cell =
+    button
+        [ id <| "text" ++ String.fromInt index
+        ]
+        [ text <| displayCell cell ]
+
+
+
+-- Boardgame --
+
+
+type alias Boardgame =
+    { cells : Array Cell
+    }
+
+
+initBoardgame : Boardgame
+initBoardgame =
+    { cells = repeat 9 initCell
+    }
+
+
+displayBoardgame : Boardgame -> List (Html ())
+displayBoardgame boardgame =
+    List.map (\( index, cell ) -> displayHtmlCell index cell) <| Array.toIndexedList boardgame.cells
+
+
+displayHtmlBoardgame : Boardgame -> Html ()
+displayHtmlBoardgame boardgame =
+    div
+        [ style "display" "grid"
+        , style "grid-template-columns" "repeat(3, 1fr)"
+        , style "grid-gap" "10px"
+        , style "grid-auto-rows" "minmax(100px, auto)"
+        ]
+        (displayBoardgame boardgame)

@@ -4419,8 +4419,6 @@ var $elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 			return 3;
 	}
 };
-var $author$project$Main$Player1 = {$: 'Player1'};
-var $author$project$Main$Player2 = {$: 'Player2'};
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $author$project$Main$displayPlayer = function (player) {
 	if (player.$ === 'Nothing') {
@@ -4437,33 +4435,167 @@ var $author$project$Main$displayPlayer = function (player) {
 var $author$project$Main$displayCell = function (cell) {
 	return $author$project$Main$displayPlayer(cell.player);
 };
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$displayHtmlCell = function (cell) {
+var $author$project$Main$displayHtmlCell = F2(
+	function (index, cell) {
+		return A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$id(
+					'text' + $elm$core$String$fromInt(index))
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(
+					$author$project$Main$displayCell(cell))
+				]));
+	});
+var $elm$core$List$foldrHelper = F4(
+	function (fn, acc, ctr, ls) {
+		if (!ls.b) {
+			return acc;
+		} else {
+			var a = ls.a;
+			var r1 = ls.b;
+			if (!r1.b) {
+				return A2(fn, a, acc);
+			} else {
+				var b = r1.a;
+				var r2 = r1.b;
+				if (!r2.b) {
+					return A2(
+						fn,
+						a,
+						A2(fn, b, acc));
+				} else {
+					var c = r2.a;
+					var r3 = r2.b;
+					if (!r3.b) {
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(fn, c, acc)));
+					} else {
+						var d = r3.a;
+						var r4 = r3.b;
+						var res = (ctr > 500) ? A3(
+							$elm$core$List$foldl,
+							fn,
+							acc,
+							$elm$core$List$reverse(r4)) : A4($elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(
+									fn,
+									c,
+									A2(fn, d, res))));
+					}
+				}
+			}
+		}
+	});
+var $elm$core$List$foldr = F3(
+	function (fn, acc, ls) {
+		return A4($elm$core$List$foldrHelper, fn, acc, 0, ls);
+	});
+var $elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						$elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
+	});
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$Array$toIndexedList = function (array) {
+	var len = array.a;
+	var helper = F2(
+		function (entry, _v0) {
+			var index = _v0.a;
+			var list = _v0.b;
+			return _Utils_Tuple2(
+				index - 1,
+				A2(
+					$elm$core$List$cons,
+					_Utils_Tuple2(index, entry),
+					list));
+		});
+	return A3(
+		$elm$core$Array$foldr,
+		helper,
+		_Utils_Tuple2(len - 1, _List_Nil),
+		array).b;
+};
+var $author$project$Main$displayBoardgame = function (boardgame) {
 	return A2(
-		$elm$html$Html$button,
-		_List_Nil,
-		_List_fromArray(
-			[
-				$elm$html$Html$text(
-				$author$project$Main$displayCell(cell))
-			]));
+		$elm$core$List$map,
+		function (_v0) {
+			var index = _v0.a;
+			var cell = _v0.b;
+			return A2($author$project$Main$displayHtmlCell, index, cell);
+		},
+		$elm$core$Array$toIndexedList(boardgame.cells));
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $author$project$Main$displayHtmlBoardgame = function (boardgame) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'display', 'grid'),
+				A2($elm$html$Html$Attributes$style, 'grid-template-columns', 'repeat(3, 1fr)'),
+				A2($elm$html$Html$Attributes$style, 'grid-gap', '10px'),
+				A2($elm$html$Html$Attributes$style, 'grid-auto-rows', 'minmax(100px, auto)')
+			]),
+		$author$project$Main$displayBoardgame(boardgame));
+};
 var $author$project$Main$initCell = {player: $elm$core$Maybe$Nothing};
+var $elm$core$Array$repeat = F2(
+	function (n, e) {
+		return A2(
+			$elm$core$Array$initialize,
+			n,
+			function (_v0) {
+				return e;
+			});
+	});
+var $author$project$Main$initBoardgame = {
+	cells: A2($elm$core$Array$repeat, 9, $author$project$Main$initCell)
+};
 var $author$project$Main$main = A2(
 	$elm$html$Html$div,
 	_List_Nil,
 	_List_fromArray(
 		[
-			$author$project$Main$displayHtmlCell($author$project$Main$initCell),
-			$author$project$Main$displayHtmlCell(
-			{
-				player: $elm$core$Maybe$Just($author$project$Main$Player1)
-			}),
-			$author$project$Main$displayHtmlCell(
-			{
-				player: $elm$core$Maybe$Just($author$project$Main$Player2)
-			})
+			$author$project$Main$displayHtmlBoardgame($author$project$Main$initBoardgame)
 		]));
 _Platform_export({'Main':{'init':_VirtualDom_init($author$project$Main$main)(0)(0)}});}(this));
