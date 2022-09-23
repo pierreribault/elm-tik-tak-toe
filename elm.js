@@ -5033,15 +5033,16 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
+var $author$project$Main$Player1 = {$: 'Player1'};
 var $elm$core$Basics$apL = F2(
 	function (f, x) {
 		return f(x);
 	});
+var $elm$core$Basics$append = _Utils_append;
 var $author$project$Main$CellSelectedBy = F2(
 	function (a, b) {
 		return {$: 'CellSelectedBy', a: a, b: b};
 	});
-var $elm$core$Basics$append = _Utils_append;
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -5489,10 +5490,25 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Main$displayHtmlCell = F3(
-	function (index, cell, player) {
+	function (index, cell, currentPlayer) {
+		var backgroundColor = function () {
+			var _v0 = cell.player;
+			if (_v0.$ === 'Nothing') {
+				return 'gray';
+			} else {
+				var player = _v0.a;
+				if (player.$ === 'Player1') {
+					return 'red';
+				} else {
+					return 'blue';
+				}
+			}
+		}();
 		return A2(
 			$elm$html$Html$button,
 			_List_fromArray(
@@ -5500,7 +5516,8 @@ var $author$project$Main$displayHtmlCell = F3(
 					$elm$html$Html$Attributes$id(
 					'text' + $elm$core$String$fromInt(index)),
 					$elm$html$Html$Events$onClick(
-					A2($author$project$Main$CellSelectedBy, index, player))
+					A2($author$project$Main$CellSelectedBy, index, currentPlayer)),
+					A2($elm$html$Html$Attributes$style, 'background-color', backgroundColor)
 				]),
 			_List_fromArray(
 				[
@@ -5611,21 +5628,38 @@ var $author$project$Main$displayBoardgame = function (boardgame) {
 		$elm$core$Array$toIndexedList(boardgame.cells));
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $elm$html$Html$p = _VirtualDom_node('p');
 var $author$project$Main$displayHtmlBoardgame = function (boardgame) {
+	var player = _Utils_eq(boardgame.currentPlayer, $author$project$Main$Player1) ? 'Player 1' : 'Player 2';
 	return A2(
 		$elm$html$Html$div,
+		_List_Nil,
 		_List_fromArray(
 			[
-				A2($elm$html$Html$Attributes$style, 'display', 'grid'),
-				A2($elm$html$Html$Attributes$style, 'grid-template-columns', 'repeat(3, 1fr)'),
-				A2($elm$html$Html$Attributes$style, 'grid-gap', '10px'),
-				A2($elm$html$Html$Attributes$style, 'grid-auto-rows', 'minmax(100px, auto)')
-			]),
-		$author$project$Main$displayBoardgame(boardgame));
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'display', 'grid'),
+						A2($elm$html$Html$Attributes$style, 'grid-template-columns', 'repeat(3, 1fr)'),
+						A2($elm$html$Html$Attributes$style, 'grid-gap', '10px'),
+						A2($elm$html$Html$Attributes$style, 'grid-auto-rows', 'minmax(100px, auto)')
+					]),
+				$author$project$Main$displayBoardgame(boardgame)),
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'margin-top', '2em'),
+						A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+						A2($elm$html$Html$Attributes$style, 'font-size', '30px')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('It\'s turn of ' + player)
+					]))
+			]));
 };
-var $author$project$Main$Player1 = {$: 'Player1'};
 var $author$project$Main$initCell = {player: $elm$core$Maybe$Nothing};
 var $elm$core$Array$repeat = F2(
 	function (n, e) {
@@ -5707,7 +5741,6 @@ var $elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
-var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $elm$html$Html$code = _VirtualDom_node('code');
 var $elm$browser$Debugger$Overlay$viewCode = function (name) {
@@ -10665,6 +10698,16 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
+var $author$project$Main$cellIsOwnable = F2(
+	function (id, boardgame) {
+		var _v0 = A2($elm$core$Array$get, id, boardgame.cells);
+		if (_v0.$ === 'Just') {
+			var cell = _v0.a;
+			return _Utils_eq(cell.player, $elm$core$Maybe$Nothing);
+		} else {
+			return false;
+		}
+	});
 var $elm$core$Array$setHelp = F4(
 	function (shift, index, value, tree) {
 		var pos = $elm$core$Array$bitMask & (index >>> shift);
@@ -10725,12 +10768,12 @@ var $author$project$Main$update = F2(
 	function (msg, boardgame) {
 		var id = msg.a;
 		var player = msg.b;
-		return _Utils_update(
+		return A2($author$project$Main$cellIsOwnable, id, boardgame) ? _Utils_update(
 			boardgame,
 			{
 				cells: A3($author$project$Main$modifyCellOwner, id, player, boardgame),
 				currentPlayer: $author$project$Main$switchPlayer(boardgame.currentPlayer)
-			});
+			}) : boardgame;
 	});
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$initBoardgame, update: $author$project$Main$update, view: $author$project$Main$displayHtmlBoardgame});

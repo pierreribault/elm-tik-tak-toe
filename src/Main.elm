@@ -69,10 +69,25 @@ displayCell cell =
 
 
 displayHtmlCell : Int -> Cell -> Player -> Html Msg
-displayHtmlCell index cell player =
+displayHtmlCell index cell currentPlayer =
+    let
+        backgroundColor =
+            case cell.player of
+                Nothing ->
+                    "gray"
+
+                Just player ->
+                    case player of
+                        Player1 ->
+                            "red"
+
+                        Player2 ->
+                            "blue"
+    in
     button
         [ id <| "text" ++ String.fromInt index
-        , onClick <| CellSelectedBy index player
+        , onClick <| CellSelectedBy index currentPlayer
+        , style "background-color" backgroundColor
         ]
         [ text <| displayCell cell ]
 
@@ -80,6 +95,16 @@ displayHtmlCell index cell player =
 modifyCellOwner : Int -> Player -> Boardgame -> Array Cell
 modifyCellOwner id player boardgame =
     Array.set id { player = Just player } boardgame.cells
+
+
+cellIsOwnable : Int -> Boardgame -> Bool
+cellIsOwnable id boardgame =
+    case Array.get id boardgame.cells of
+        Just cell ->
+            cell.player == Nothing
+
+        Nothing ->
+            False
 
 
 
@@ -106,13 +131,29 @@ displayBoardgame boardgame =
 
 displayHtmlBoardgame : Boardgame -> Html Msg
 displayHtmlBoardgame boardgame =
-    div
-        [ style "display" "grid"
-        , style "grid-template-columns" "repeat(3, 1fr)"
-        , style "grid-gap" "10px"
-        , style "grid-auto-rows" "minmax(100px, auto)"
+    let
+        player =
+            if boardgame.currentPlayer == Player1 then
+                "Player 1"
+
+            else
+                "Player 2"
+    in
+    div []
+        [ div
+            [ style "display" "grid"
+            , style "grid-template-columns" "repeat(3, 1fr)"
+            , style "grid-gap" "10px"
+            , style "grid-auto-rows" "minmax(100px, auto)"
+            ]
+            (displayBoardgame boardgame)
+        , p
+            [ style "margin-top" "2em"
+            , style "text-align" "center"
+            , style "font-size" "30px"
+            ]
+            [ text <| "It's turn of " ++ player ]
         ]
-        (displayBoardgame boardgame)
 
 
 
@@ -127,7 +168,11 @@ update : Msg -> Boardgame -> Boardgame
 update msg boardgame =
     case msg of
         CellSelectedBy id player ->
-            { boardgame
-                | cells = modifyCellOwner id player boardgame
-                , currentPlayer = switchPlayer boardgame.currentPlayer
-            }
+            if cellIsOwnable id boardgame then
+                { boardgame
+                    | cells = modifyCellOwner id player boardgame
+                    , currentPlayer = switchPlayer boardgame.currentPlayer
+                }
+
+            else
+                boardgame
