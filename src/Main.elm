@@ -7,6 +7,7 @@ import Html.Attributes exposing (id, style)
 import Html.Events exposing (onClick)
 
 
+main : Program () Boardgame Msg
 main =
     Browser.sandbox
         { init = initBoardgame
@@ -165,28 +166,44 @@ displayBoardgame boardgame =
 displayHtmlBoardgame : Boardgame -> Html Msg
 displayHtmlBoardgame boardgame =
     let
-        player =
-            if boardgame.currentPlayer == Player1 then
+        playerName : Player -> String
+        playerName player =
+            if player == Player1 then
                 "Player 1"
 
             else
                 "Player 2"
     in
-    div []
-        [ div
-            [ style "display" "grid"
-            , style "grid-template-columns" "repeat(3, 1fr)"
-            , style "grid-gap" "10px"
-            , style "grid-auto-rows" "minmax(100px, auto)"
-            ]
-            (displayBoardgame boardgame)
-        , p
-            [ style "margin-top" "2em"
-            , style "text-align" "center"
-            , style "font-size" "30px"
-            ]
-            [ text <| "It's turn of " ++ player ]
-        ]
+    case boardgame.winner of
+        Nothing ->
+            div []
+                [ div
+                    [ style "display" "grid"
+                    , style "grid-template-columns" "repeat(3, 1fr)"
+                    , style "grid-gap" "10px"
+                    , style "grid-auto-rows" "minmax(100px, auto)"
+                    ]
+                    (displayBoardgame boardgame)
+                , p
+                    [ style "margin-top" "2em"
+                    , style "text-align" "center"
+                    , style "font-size" "30px"
+                    ]
+                    [ text <| "It's turn of " ++ playerName boardgame.currentPlayer ]
+                ]
+
+        Just winner ->
+            div [ style "text-align" "center" ]
+                [ p
+                    [ style "margin-top" "2em"
+                    , style "text-align" "center"
+                    , style "font-size" "30px"
+                    ]
+                    [ text <| "Well played " ++ playerName winner ++ ", wins !" ]
+                , button
+                    [ onClick Reset ]
+                    [ text "Restart the game" ]
+                ]
 
 
 victoryPossibilities : List (List Int)
@@ -217,6 +234,7 @@ isThereWinner boardgame =
 
 type Msg
     = CellSelectedBy Int Player
+    | Reset
 
 
 update : Msg -> Boardgame -> Boardgame
@@ -228,3 +246,6 @@ update msg boardgame =
 
             else
                 boardgame
+
+        Reset ->
+            initBoardgame

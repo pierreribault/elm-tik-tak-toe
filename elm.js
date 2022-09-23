@@ -5034,15 +5034,12 @@ var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
 var $author$project$Main$Player1 = {$: 'Player1'};
+var $author$project$Main$Reset = {$: 'Reset'};
 var $elm$core$Basics$apL = F2(
 	function (f, x) {
 		return f(x);
 	});
 var $elm$core$Basics$append = _Utils_append;
-var $author$project$Main$CellSelectedBy = F2(
-	function (a, b) {
-		return {$: 'CellSelectedBy', a: a, b: b};
-	});
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -5449,6 +5446,10 @@ var $elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	}
 };
 var $elm$html$Html$button = _VirtualDom_node('button');
+var $author$project$Main$CellSelectedBy = F2(
+	function (a, b) {
+		return {$: 'CellSelectedBy', a: a, b: b};
+	});
 var $author$project$Main$displayPlayer = function (player) {
 	if (player.$ === 'Nothing') {
 		return '?';
@@ -5630,35 +5631,75 @@ var $author$project$Main$displayBoardgame = function (boardgame) {
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $author$project$Main$displayHtmlBoardgame = function (boardgame) {
-	var player = _Utils_eq(boardgame.currentPlayer, $author$project$Main$Player1) ? 'Player 1' : 'Player 2';
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'display', 'grid'),
-						A2($elm$html$Html$Attributes$style, 'grid-template-columns', 'repeat(3, 1fr)'),
-						A2($elm$html$Html$Attributes$style, 'grid-gap', '10px'),
-						A2($elm$html$Html$Attributes$style, 'grid-auto-rows', 'minmax(100px, auto)')
-					]),
-				$author$project$Main$displayBoardgame(boardgame)),
-				A2(
-				$elm$html$Html$p,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'margin-top', '2em'),
-						A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-						A2($elm$html$Html$Attributes$style, 'font-size', '30px')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('It\'s turn of ' + player)
-					]))
-			]));
+	var playerName = function (player) {
+		return _Utils_eq(player, $author$project$Main$Player1) ? 'Player 1' : 'Player 2';
+	};
+	var _v0 = boardgame.winner;
+	if (_v0.$ === 'Nothing') {
+		return A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'display', 'grid'),
+							A2($elm$html$Html$Attributes$style, 'grid-template-columns', 'repeat(3, 1fr)'),
+							A2($elm$html$Html$Attributes$style, 'grid-gap', '10px'),
+							A2($elm$html$Html$Attributes$style, 'grid-auto-rows', 'minmax(100px, auto)')
+						]),
+					$author$project$Main$displayBoardgame(boardgame)),
+					A2(
+					$elm$html$Html$p,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'margin-top', '2em'),
+							A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+							A2($elm$html$Html$Attributes$style, 'font-size', '30px')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							'It\'s turn of ' + playerName(boardgame.currentPlayer))
+						]))
+				]));
+	} else {
+		var winner = _v0.a;
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$p,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'margin-top', '2em'),
+							A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+							A2($elm$html$Html$Attributes$style, 'font-size', '30px')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							'Well played ' + (playerName(winner) + ', wins !'))
+						])),
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick($author$project$Main$Reset)
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('Restart the game')
+						]))
+				]));
+	}
 };
 var $author$project$Main$initCell = {player: $elm$core$Maybe$Nothing};
 var $elm$core$Array$repeat = F2(
@@ -10887,16 +10928,20 @@ var $author$project$Main$modifyCellOwner = F3(
 	});
 var $author$project$Main$update = F2(
 	function (msg, boardgame) {
-		var id = msg.a;
-		var player = msg.b;
-		return A2($author$project$Main$cellIsOwnable, id, boardgame) ? $author$project$Main$isThereWinner(
-			_Utils_update(
-				boardgame,
-				{
-					cells: A3($author$project$Main$modifyCellOwner, id, player, boardgame)
-				})) : boardgame;
+		if (msg.$ === 'CellSelectedBy') {
+			var id = msg.a;
+			var player = msg.b;
+			return A2($author$project$Main$cellIsOwnable, id, boardgame) ? $author$project$Main$isThereWinner(
+				_Utils_update(
+					boardgame,
+					{
+						cells: A3($author$project$Main$modifyCellOwner, id, player, boardgame)
+					})) : boardgame;
+		} else {
+			return $author$project$Main$initBoardgame;
+		}
 	});
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$initBoardgame, update: $author$project$Main$update, view: $author$project$Main$displayHtmlBoardgame});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"CellSelectedBy":["Basics.Int","Main.Player"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Main.Player":{"args":[],"tags":{"Player1":[],"Player2":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"CellSelectedBy":["Basics.Int","Main.Player"],"Reset":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Main.Player":{"args":[],"tags":{"Player1":[],"Player2":[]}}}}})}});}(this));
